@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+#define SIZE 26
+
+// Substitution key for A-Z
+char letter_key[SIZE] = {
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z',
+    'X', 'C', 'V', 'B', 'N', 'M'
+};
+
+// Convert numbers (0-25) to letters (e.g., 7 -> H, 4 -> E)
+void numbers_to_text(const char* input, char* output) {
+    int num, j = 0;
+    const char* ptr = input;
+    while (*ptr) {
+        if (sscanf(ptr, "%d", &num) == 1) {
+            if (num >= 0 && num < SIZE) {
+                output[j++] = 'A' + num;
+            }
+            // Move to next number or space
+            while (*ptr && !isspace(*ptr)) ptr++;
+        }
+        while (*ptr && isspace(*ptr)) ptr++;
+    }
+    output[j] = '\0';
+}
+
+// Check if input only has digits and spaces
+int is_number_input(const char* input) {
+    for (int i = 0; input[i]; i++) {
+        if (!isdigit(input[i]) && !isspace(input[i])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// Encrypt message
+void encrypt(const char* plaintext, char* ciphertext) {
+    int i;
+    for (i = 0; plaintext[i]; i++) {
+        if (isupper(plaintext[i])) {
+            ciphertext[i] = letter_key[plaintext[i] - 'A'];
+        } else if (islower(plaintext[i])) {
+            ciphertext[i] = tolower(letter_key[plaintext[i] - 'a']);
+        } else {
+            ciphertext[i] = plaintext[i]; // leave unchanged
+        }
+    }
+    ciphertext[i] = '\0';
+}
+
+// Decrypt message
+void decrypt(const char* ciphertext, char* plaintext) {
+    int i, j;
+    for (i = 0; ciphertext[i]; i++) {
+        char ch = toupper(ciphertext[i]);
+        if (isalpha(ch)) {
+            for (j = 0; j < SIZE; j++) {
+                if (letter_key[j] == ch) {
+                    plaintext[i] = isupper(ciphertext[i]) ? ('A' + j) : tolower('A' + j);
+                    break;
+                }
+            }
+        } else {
+            plaintext[i] = ciphertext[i];
+        }
+    }
+    plaintext[i] = '\0';
+}
+
+int main() {
+    char input[1000], processed[1000], result[1000];
+    int choice;
+
+    printf("Monoalphabetic Cipher Program\n");
+    printf("1. Encrypt\n");
+    printf("2. Decrypt\n");
+    printf("Enter your choice (1 or 2): ");
+    scanf("%d", &choice);
+    getchar();  // clear newline
+
+    printf("Enter the message: ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0'; // remove newline
+
+    // Convert number input to text if needed
+    if (is_number_input(input)) {
+        numbers_to_text(input, processed);
+    } else {
+        strcpy(processed, input);
+    }
+
+    if (choice == 1) {
+        encrypt(processed, result);
+        printf("Original message: %s\n", processed);
+        printf("Encrypted message: %s\n", result);
+    } else if (choice == 2) {
+        decrypt(processed, result);
+        printf("Encrypted message: %s\n", processed);
+        printf("Decrypted message: %s\n", result);
+    } else {
+        printf("Invalid choice.\n");
+    }
+
+    return 0;
+}
